@@ -1,0 +1,72 @@
+﻿#pragma kernel ProfileBufferMainCS
+
+static const float tau = 6.28318530718f;
+static const int numNodes = 100;
+
+int size;
+float time;
+float period;
+float windSpeed;
+float spectrumMin;
+float spectrumMax;
+
+RWTexture2D<float4> result;
+
+float spectrum(float zeta)
+{
+	float A = pow(1.1f, 1.5f * zeta); // original pow(2, 1.5*zeta)
+	float B = exp(-1.8038897788076411f * pow(4.0f, zeta) / pow(windSpeed, 4.0f));
+	return 0.139098f * sqrt(A * B);
+}
+
+float dispersionRelation(float k)
+{
+	static const float g = 9.81f;
+	return sqrt(k * g);
+}
+
+float cubicBump(float x)
+{
+	return abs(x) >= 1.0f ? 0.0f : x * x * (2.0f * abs(x) - 3.0f) + 1.0f;
+}
+
+float4 gerstnerWave(float phase, float knum)
+{
+	float s, c;
+	sincos(phase, s, c);
+	return float4(-s, c, -knum * c, -knum * s);
+}
+
+float4 sample(float p, float zeta)
+{
+	float waveLength = pow(2.0f, zeta);
+	float waveNumber = tau / waveLength;
+	float dispRel = dispersionRelation(waveNumber);
+	float phase1 = waveNumber * p - dispRel * time;
+	float phase2 = waveNumber * (p - period) - dispRel * time;
+	float weight1 = p / period;
+	float weight2 = 1.0f - weight1;
+	return waveLength * spectrum(zeta) * (
+	  cubicBump(weight1) * gerstnerWave(phase1, waveNumber)
+	+ cubicBump(weight2) * gerstnerWave(phase2, waveNumber)
+	);
+}
+
+float4 integrate(float p)
+{
+	float dx = (spectrumMax - spectrumMin) / numNodes;
+	float x  = spectrumMin + 0.5f * dx;
+	float4 result = dx * sample(p, x);
+	for (int i = 1; i < numNodes; i++) {
+		x += dx;
+		result += dx * sample(p, x);
+	}
+	return result;
+}
+
+[numthreads(1,1,1)]
+void ProfileBufferMainCS(uint2 DTid : SV_DispatchThreadID)
+{
+	float p = (DTid.x * period) / size;
+	result[DTid] = integrate(p);
+}

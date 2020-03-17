@@ -1,0 +1,27 @@
+﻿#pragma kernel AdvectMainCS
+
+static const float tau = 6.28318530718f;
+
+float3 origin;
+float dt;
+float3 dims;
+float groupSpeed;
+
+Texture3D<float> input;
+RWTexture3D<float> result;
+
+SamplerState samplerInputLinearClamp;
+
+[numthreads(1,1,1)]
+void AdvectMainCS(uint3 DTid : SV_DispatchThreadID)
+{
+	uint3 ipos = DTid;
+	float3 fpos = origin + (ipos + 0.5f) * dims;
+
+	float2 groupVel;
+	sincos(tau * fpos.z, groupVel.y, groupVel.x);
+	groupVel *= groupSpeed;
+	fpos.xy -= dt * groupVel * 0.01f;
+
+	result[ipos] = input.SampleLevel(samplerInputLinearClamp, fpos, 0.0f);
+}

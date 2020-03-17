@@ -1,0 +1,16 @@
+﻿#pragma kernel DiffuseMainCS
+
+float dt;
+float groupSpeed;
+
+Texture3D<float> input;
+RWTexture3D<float> result;
+
+[numthreads(1,1,1)]
+void DiffuseMainCS(uint3 DTid : SV_DispatchThreadID)
+{
+	uint3 ipos = DTid;
+	float gamma = 2.0f * 0.025f * groupSpeed * dt;
+	result[ipos] = (1.0f - gamma) * input[ipos]
+		+ gamma * 0.5f * (input[ipos + int3(0, 0, +1)] + input[ipos + int3(0, 0, -1)]);
+}
