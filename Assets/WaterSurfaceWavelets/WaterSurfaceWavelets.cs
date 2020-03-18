@@ -41,9 +41,6 @@ public class WaterSurfaceWavelets : MonoBehaviour
 
     public RenderTexture normalsOutput;
 
-    // debug
-    private int numFrames = 300;
-
     static float Spectrum(float zeta)
     {
         float A = Mathf.Pow(1.1f, 1.5f * zeta); // original pow(2, 1.5*zeta)
@@ -51,19 +48,6 @@ public class WaterSurfaceWavelets : MonoBehaviour
         return 0.139098f * Mathf.Sqrt(A * B);
     }
 
-    private static float Integrate(int count, float min, float max, Func<float, float> f)
-    {
-        float dx = (max - min) / count;
-        float x = min + 0.5f * dx;
-
-        float result = dx * f(x);
-        for (int i = 1; i < count; i++)
-        {
-            x += dx;
-            result += dx * f(x);
-        }
-        return result;
-    }
     private static Vector2 Integrate(int count, float min, float max, Func<float, Vector2> f)
     {
         float dx = (max - min) / count;
@@ -131,8 +115,6 @@ public class WaterSurfaceWavelets : MonoBehaviour
             bufNormals.enableRandomWrite = true;
             bufNormals.Create();
         }
-
-        StepInjectPoint(textureSize / 2, textureSize / 2);
     }
 
     void OnDisable()
@@ -213,7 +195,6 @@ public class WaterSurfaceWavelets : MonoBehaviour
         {
             StepAdvect(dt);
             StepDiffuse(dt);
-            numFrames--;
         }
         StepProfileBuffer();
         StepNormals();
