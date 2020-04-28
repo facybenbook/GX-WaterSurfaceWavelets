@@ -14,7 +14,7 @@ public class WaterSurfaceWavelets : MonoBehaviour
     private const float windSpeed = 10.0f;
     private readonly static float spectrumMin = Mathf.Log(0.03f, 2.0f);
     private readonly static float spectrumMax = Mathf.Log(10.0f, 2.0f);
-    private readonly static float period = 2.0f * Mathf.Pow(2.0f, spectrumMax);
+    private readonly static float period = realWorldScale * Mathf.Pow(2.0f, spectrumMax);
     private readonly static float groupSpeed = ComputeGroupSpeed();
 
     // compute shaders
