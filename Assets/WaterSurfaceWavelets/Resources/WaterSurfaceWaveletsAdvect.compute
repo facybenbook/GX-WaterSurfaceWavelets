@@ -21,7 +21,7 @@ void AdvectMainCS(uint3 DTid : SV_DispatchThreadID)
 	float2 groupVel;
 	sincos(tau * fpos.z, groupVel.y, groupVel.x);
 	groupVel *= groupSpeed;
-	fpos.xy -= dt * groupVel * 0.01f;
+	fpos.xy -= dt * groupVel * dims.xy;
 
 	result[ipos] = input.SampleLevel(samplerInputLinearClamp, fpos, 0.0f);
 }

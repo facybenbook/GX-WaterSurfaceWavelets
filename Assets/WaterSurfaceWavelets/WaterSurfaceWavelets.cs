@@ -6,6 +6,7 @@ using UnityEngine.UIElements;
 
 public class WaterSurfaceWavelets : MonoBehaviour
 {
+    private const int realWorldScale = 10;
     private const int numNodes = 100;
     private const int numDirections = 16;
     private const int textureSize = 128;
@@ -43,7 +44,7 @@ public class WaterSurfaceWavelets : MonoBehaviour
 
     static float Spectrum(float zeta)
     {
-        float A = Mathf.Pow(1.1f, 1.5f * zeta); // original pow(2, 1.5*zeta)
+        float A = Mathf.Pow(2.0f, 1.5f * zeta);
         float B = Mathf.Exp(-1.8038897788076411f * Mathf.Pow(4.0f, zeta) / Mathf.Pow(windSpeed, 4.0f));
         return 0.139098f * Mathf.Sqrt(A * B);
     }
@@ -70,13 +71,16 @@ public class WaterSurfaceWavelets : MonoBehaviour
             float waveNumber = Mathf.PI * 2.0f / waveLength;
             float cg = 0.5f * Mathf.Sqrt(9.81f / waveNumber);
             float density = Spectrum(zeta);
-            return new Vector2(cg* density, density);
+            return new Vector2(cg * density, density);
         });
-        return 3.0f * result.x / result.y;
+        float groupSpeed = result.x / result.y;
+        return realWorldScale * groupSpeed;
     }
 
     void OnEnable()
     {
+        Debug.LogFormat("Group speed: {0}", groupSpeed);
+
         csAdvect = Resources.Load<ComputeShader>("WaterSurfaceWaveletsAdvect");
         csAdvectMain = csAdvect.FindKernel("AdvectMainCS");
 
@@ -181,6 +185,7 @@ public class WaterSurfaceWavelets : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
+        if (Input.GetMouseButton(0))
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -188,14 +193,12 @@ public class WaterSurfaceWavelets : MonoBehaviour
             {
                 int x = Mathf.FloorToInt(hit.textureCoord.x * textureSize);
                 int y = Mathf.FloorToInt(hit.textureCoord.y * textureSize);
-                Debug.Log(string.Format("{0} {1}", x, y));
                 StepInjectPoint(x, y);
             }
         }
-        {
-            StepAdvect(dt);
-            StepDiffuse(dt);
-        }
+
+        StepAdvect(dt);
+        StepDiffuse(dt);
         StepProfileBuffer();
         StepNormals();
     }

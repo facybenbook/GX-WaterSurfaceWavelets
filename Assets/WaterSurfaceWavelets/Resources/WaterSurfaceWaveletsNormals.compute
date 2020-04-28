@@ -35,7 +35,7 @@ float3 waveNormal(float2 p)
 		float kdir_x = dot(p.xy, kdir) + tau * sin(seed * a);
 		float w = 10.0f * kdir_x / period;
 
-		float4 tt = dx * amplitude(float3(p + 0.5f, a)) * profile.SampleLevel(samplerInputLinearRepeat, w, 0.0f);
+		float4 tt = dx * amplitude(float3(p, a)) * profile.SampleLevel(samplerInputLinearRepeat, w, 0.0f);
 
 		tx.xz += kdir.x * tt.zw;
 		ty.yz += kdir.y * tt.zw;
@@ -48,6 +48,6 @@ float3 waveNormal(float2 p)
 void NormalsMainCS(uint2 DTid : SV_DispatchThreadID)
 {
 	float2 s = size;
-	float2 p = float2(DTid - s / 2) / s;
+	float2 p = DTid / s;
 	result[DTid] = waveNormal(p) * 0.5f + 0.5f;
 }

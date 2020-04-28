@@ -14,7 +14,7 @@ RWTexture2D<float4> result;
 
 float spectrum(float zeta)
 {
-	float A = pow(1.1f, 1.5f * zeta); // original pow(2, 1.5*zeta)
+	float A = pow(2.0f, 1.5f * zeta);
 	float B = exp(-1.8038897788076411f * pow(4.0f, zeta) / pow(windSpeed, 4.0f));
 	return 0.139098f * sqrt(A * B);
 }
@@ -47,8 +47,8 @@ float4 sample(float p, float zeta)
 	float weight1 = p / period;
 	float weight2 = 1.0f - weight1;
 	return waveLength * spectrum(zeta) * (
-	  cubicBump(weight1) * gerstnerWave(phase1, waveNumber)
-	+ cubicBump(weight2) * gerstnerWave(phase2, waveNumber)
+		  cubicBump(weight1) * gerstnerWave(phase1, waveNumber)
+		+ cubicBump(weight2) * gerstnerWave(phase2, waveNumber)
 	);
 }
 
